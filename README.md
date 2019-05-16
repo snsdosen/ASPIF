@@ -21,7 +21,7 @@ It should work on other Arduino boards with little or no modification.
 
 Make sure to use **3.3V logic** microcontrollers as flash chips are **NOT 5V compatible**.
 
-###### Connection diagram:
+##### Connection diagram:
 | SPI flash  | Arduino|
 | ------------ | ------------ |
 |1. CS  | 6 |
@@ -33,8 +33,8 @@ Make sure to use **3.3V logic** microcontrollers as flash chips are **NOT 5V com
 |7. HOLD | 5 |
 |8. VCC | 3.3V |
 
-###### Compatible chips:
-As of now I tested this software
+##### Compatible chips:
+As of now I tested this suite with **Winbond 25q64fvsig** and **GD25Q32C** chips.
 
 ## Software:
 #### Microcontroller:
