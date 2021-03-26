@@ -15,7 +15,8 @@ ASPIF consists of Arduino sketch and a client application written in python.
 Other projects weren't working on my Itead Leonardo compatible board and debugging those issues did not seem appealing to me so I decided to have some fun on my own.
 
 ## Hardware:
-As of now the only Arduino board I tested this on is **Itead Leonardo**, an **Arduino Leonardo** compatible board containing ATmega32u4 microcontroller.
+As of now the only Arduino board I tested this on is **Itead Leonardo**,<br>
+an **Arduino Leonardo** compatible board containing ATmega32u4 microcontroller.
 
 It should work on other Arduino boards with little or no modification.
 
@@ -34,17 +35,17 @@ Make sure to use **3.3V logic** microcontrollers as flash chips are **NOT 5V com
 |8. VCC | 3.3V |
 
 ##### Compatible chips:
-As of now I tested this suite with **Winbond 25q64fvsig** and **GD25Q32C** chips.
+As of now I tested this suite with **Winbond 25Q64FVSIG** and **GD25Q32C** chips.
 
 ## Software:
 #### Microcontroller:
 Use a provided "ASPIF.ino" sketch and upload it to your Arduino devboard.
 
 #### PC:
-To use ASPIF PC client you need to have python 2 installed.
+To use ASPIF PC client you need to have python 3 installed.<br>
 Windows, Linux and macOS operating systems are supported.
 
-You also need pyserial which can be installed using the following command:
-`pip install pyserial`
+You also need pyserial which can be installed using the following command:<br>
+`python3 -m pip install pyserial`
 
-After installation run `python ASPIF.py --help` to see help screen.
+After installation run `python3 ASPIF.py --help` to see help screen.

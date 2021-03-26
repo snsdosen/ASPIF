@@ -1,7 +1,7 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 #ASPIF python client
-#snsdosen 2019
+#snsdosen 2019-2021
 
 import time
 import serial
@@ -57,19 +57,19 @@ global currentPacket    #Active reading or writing packet
 IDENTIFIER = "ASPIF"
 
 #Commands
-CMD_IDENTIFIER =    'X'
-CMD_VERSION =       'V'
-CMD_READ =          'R'
-CMD_WRITE =         'W'
-CMD_ERASE =         'E'
-CMD_INFO =          'I'
-CMD_PUSH =          'H'
-CMD_PULL =          'L'
+CMD_IDENTIFIER =    0x58    #'X'
+CMD_VERSION =       0x56    #'V'
+CMD_READ =          0x52    #'R'
+CMD_WRITE =         0x57    #'W'
+CMD_ERASE =         0x45    #'E'
+CMD_INFO =          0x49    #'I'
+CMD_PUSH =          0x48    #'H'
+CMD_PULL =          0x4C    #'L'
 
 #Subcommands
-INFO_JEDEC =        'J'
-INFO_MAN_ID =       'M'
-INFO_CAPACITY =     'C'
+INFO_JEDEC =        0x4A    #'J'
+INFO_MAN_ID =       0x4D    #'M'
+INFO_CAPACITY =     0x43    #'C'
 
 #Responses
 RES_OK =            'K'
@@ -78,7 +78,7 @@ RES_CONTINUE =      'C'
 RES_BUSY =          'B'
 
 appName = "ASPIF client"
-appVersion = "0.1 alpha"
+appVersion = "0.2"
 execName = "ASPIF.py"
 
 #Variables
@@ -98,20 +98,20 @@ currentPacket = bytearray()
 
 #Show info about the application
 def about():
-    print appName + " " + appVersion
+    print (appName + " " + appVersion)
 
 #Show application help
 def help():
     success("Program usage:")
-    print execName + " <--h|--e|--r|--w|--i> --p (PortName) --f (FileName) --s (FileSize)"
-    print "\t--h, --help\t\tShow help screen"
-    print "\t--e, --erase\t\tFully erase flash"
-    print "\t--p, --port\t\tSpecify flasher tty port"
-    print "\t--r, --read\t\tRead data from flash to file"
-    print "\t--w, --write\t\tWrite data from file to flash"
-    print "\t--i, --info\t\tShow flash info (JEDEC ID, capacity, block size)"
-    print "\t--f, --file\t\tFile to read from or write to"
-    print "\t--s, --size\t\tSize of data (in bytes) to read or write"
+    print (execName + " <--h|--e|--r|--w|--i> --p (PortName) --f (FileName) --s (FileSize)")
+    print ("\t--h, --help\t\tShow help screen")
+    print ("\t--e, --erase\t\tFully erase flash")
+    print ("\t--p, --port\t\tSpecify flasher tty port")
+    print ("\t--r, --read\t\tRead data from flash to file")
+    print ("\t--w, --write\t\tWrite data from file to flash")
+    print ("\t--i, --info\t\tShow flash info (JEDEC ID, capacity, block size)")
+    print ("\t--f, --file\t\tFile to read from or write to")
+    print ("\t--s, --size\t\tSize of data (in bytes) to read or write")
 
 #Show colored warning message
 def warning(message):
@@ -136,8 +136,8 @@ def success(message):
 
 #Confirm that we are talking to a correct device
 def validate():
-    serialObj.write(CMD_IDENTIFIER)
-    if(serialObj.readline().rstrip() != IDENTIFIER):
+    serialObj.write(bytes([CMD_IDENTIFIER]))
+    if(serialObj.readline().rstrip().decode("utf-8") != IDENTIFIER):
         error("Device not recognised")
         sys.exit()
 
@@ -210,15 +210,15 @@ if mode == "ERASE":
     else:
         print('Flash \x1b[1;31;40m' + 'erase' + '\x1b[0m initiated')
 
-    serialObj.write(CMD_ERASE)
+    serialObj.write(bytes([CMD_ERASE]))
 
     #Poll busy status, acknowledge on end
-    while serialObj.readline().rstrip() == RES_BUSY:
+    while serialObj.readline().rstrip().decode("utf-8") == RES_BUSY:
         sys.stdout.write(".")
         sys.stdout.flush()
 
     #Wait for acknowledge
-    #if serialObj.readline().rstrip() != CMD_ERASE:
+    #if serialObj.readline().rstrip().decode("utf-8") != CMD_ERASE:
         #error("failed to receive erase acknowledge")
         #sys.exit()
 
@@ -240,27 +240,27 @@ elif mode == "READ":
     packetCount = int(fileSize) / 256
     currentAddress = 0
 
-    for x in range(packetCount):
-        sys.stdout.write("Reading page: " + str(x + 1) + "/" + str(packetCount))
+    for x in range(int(packetCount)):
+        sys.stdout.write("Reading page: " + str(x + 1) + "/" + str(int(packetCount)))
         sys.stdout.flush()
 
         currentPacket = bytearray()
 
         currentAddress = x
-        serialObj.write(CMD_READ)
+        serialObj.write(bytes([CMD_READ, (currentAddress >> 8) & 0xFF, (currentAddress) & 0xFF]))
 
         #Send address MSB
-        currentPacket.append((currentAddress >> 8) & 0xFF)
-        currentPacket.append((currentAddress) & 0xFF)
+        #currentPacket.append()
+        #currentPacket.append((currentAddress) & 0xFF)
 
-        serialObj.write(currentPacket);
+        #serialObj.write(currentPacket);
 
         #Wait for acknowledge
-        if serialObj.readline().rstrip() != CMD_READ:
+        if serialObj.readline().rstrip().decode("utf-8") != 'R':
             error("failed to receive read acknowledge")
             sys.exit()
 
-        serialObj.write(CMD_PULL);
+        serialObj.write(bytes([CMD_PULL]));
 
         recvData = serialObj.read(256)
         sys.stdout.write("\r")
@@ -288,15 +288,15 @@ elif mode == "WRITE":
     packetCount = int(fileSize) / 256
     currentAddress = 0
 
-    for x in range(packetCount):
-        sys.stdout.write("Writing page: " + str(x + 1) + "/" + str(packetCount))
+    for x in range(int(packetCount)):
+        sys.stdout.write("Writing page: " + str(x + 1) + "/" + str(int(packetCount)))
         sys.stdout.flush()
 
         currentPacket = bytearray()
         currentAddress = x
 
         #Push data to buffer on the flasher
-        serialObj.write(CMD_PUSH)
+        serialObj.write(bytes([CMD_PUSH]))
 
         #Some Arduinos (eg. Leonardo) crash when there is too much data in the buffer
         #so to be safe we need to upload chunks of 32 bytes at a time to not overflow the buffer
@@ -308,20 +308,20 @@ elif mode == "WRITE":
             serialObj.write(sentData)
 
             #Wait for acknowledge
-            if serialObj.readline().rstrip() != RES_CONTINUE:
+            if serialObj.readline().rstrip().decode("utf-8") != RES_CONTINUE:
                 error("failed to receive continue acknowledge")
                 sys.exit()
 
-        serialObj.write(CMD_WRITE)
+        serialObj.write(bytes([CMD_WRITE, (currentAddress >> 8) & 0xFF, (currentAddress) & 0xFF]))
 
         #Send address MSB
-        currentPacket.append((currentAddress >> 8) & 0xFF)
-        currentPacket.append((currentAddress) & 0xFF)
+        #currentPacket.append()
+        #currentPacket.append()
 
-        serialObj.write(currentPacket);
+        #serialObj.write(currentPacket);
 
         #Wait for acknowledge
-        if serialObj.readline().rstrip() != CMD_WRITE:
+        if serialObj.readline().rstrip().decode("utf-8") != 'W':
             error("failed to receive write acknowledge")
             sys.exit()
 
@@ -341,23 +341,23 @@ elif mode == "INFO":
     else:
         print('\x1b[1;32;40m' + 'Flash info' + '\x1b[0m:')
 
-    serialObj.write(CMD_INFO)
-    serialObj.write(INFO_JEDEC)
-    flashJEDEC = serialObj.readline().rstrip()
+    serialObj.write(bytes([CMD_INFO]))
+    serialObj.write(bytes([INFO_JEDEC]))
+    flashJEDEC = serialObj.readline().rstrip().decode("utf-8")
 
-    serialObj.write(CMD_INFO)
-    serialObj.write(INFO_MAN_ID)
-    flashMAN_ID = serialObj.readline().rstrip()
+    serialObj.write(bytes([CMD_INFO]))
+    serialObj.write(bytes([INFO_MAN_ID]))
+    flashMAN_ID = serialObj.readline().rstrip().decode("utf-8")
 
-    serialObj.write(CMD_INFO)
-    serialObj.write(INFO_CAPACITY)
-    flashCapacity = serialObj.readline().rstrip()
+    serialObj.write(bytes([CMD_INFO]))
+    serialObj.write(bytes([INFO_CAPACITY]))
+    flashCapacity = serialObj.readline().rstrip().decode("utf-8")
 
     print("JEDEC: " + flashJEDEC)
     print("Manufacturer ID: " + flashMAN_ID)
     print("Capacity: " + flashCapacity + " bytes")
 
 else:
-    print warning("no operation selected")
+    print (warning("no operation selected"))
 
 serialObj.close()
